@@ -1,87 +1,41 @@
 <script setup>
-import {reactive} from "vue";
+import {computed, reactive, ref} from "vue";
 
-const state = reactive({
-  xsize: '',
-  ysize: '',
-  start: false,
-  backgrounds: {
-    x: [],
-    y: []
-  }
+const state = reactive({ xsize: 0, ysize: 0 })
+
+const itemRefs = ref([])
+
+const hover = (index) => {
+  const x = index.split(',')[0]
+  const y = index.split(',')[1]
+  let currentColor = itemRefs.value[x].children[y].style.background
+  itemRefs.value[x].children[y].style.background = currentColor === 'white' ? "blue" : "white"
+}
+
+const redraw = computed(() => {
+  return state.xsize + state.ysize
 })
-
-const handleStart = () => {
-  if (state.xsize && state.ysize) {
-    state.start = true
-  }
-}
-
-const hover = (z, index) => {
-  const currentBg = state.backgrounds[z][index]
-  state.backgrounds[z][index] = (currentBg === "blue") ? "white" : "blue"
-}
 
 </script>
 
 <template>
   <div style="width: 1200px; height: 100vh; padding: 2rem">
     <div>
-      <v-text-field
-        v-model="state.xsize"
-        label="Xsize"
-        required
-      ></v-text-field>
-      <v-text-field
-        v-model="state.ysize"
-        label="Ysize"
-        required
-      ></v-text-field>
-      <v-btn
-        v-if="!state.start"
-        class="me-4"
-        @click="handleStart"
-      >
-        start
-      </v-btn>
+      <v-text-field v-model="state.xsize" label="Xsize" required type="number"></v-text-field>
+      <v-text-field v-model="state.ysize" label="Ysize" required type="number"></v-text-field>
     </div>
-    <div v-if="state.start" style="margin: 2rem 0; background: black">
-      <div style="display: flex;">
-        <div
-          v-for="(item, index) in +state.xsize"
-          :key="index"
-          style="width: 36px; height: 36px; margin: 1rem; display: flex"
-          @mouseover="hover('x', index)"
-          :class="$style[(state.backgrounds.x.length > 0 && state.backgrounds.x[index]) ? state.backgrounds.x[index] : 'white']"
-        >
-        </div>
-      </div>
+    <div :key="redraw" style="margin: 2rem 0; background: black; display: grid; overflow-x: scroll">
       <div style="display: flex; flex-direction: column">
-        <div
-          v-for="(item, index) in +state.ysize-1"
-          :key="index"
-          style="width: 36px; height: 36px; margin: 1rem; display: flex"
-          @mouseover="hover('y', index)"
-          :class="$style[(state.backgrounds.y.length > 0 && state.backgrounds.y[index]) ? state.backgrounds.y[index] : 'white']"
-        >
+        <div ref="itemRefs" v-for="(_, y) in +state.ysize" :key="y" style="display: flex" >
+            <div
+              v-for="(_, x) in +state.xsize"
+              :key="x"
+              style="width: 36px; height: 36px; margin: 1rem; display: flex; background: white;"
+              @mouseover="hover(y + ',' + x)"
+            >
+            </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style module>
-.white {
-  background: white;
-}
-.blue {
-  background: blue;
-}
-/*@media (min-width: 1024px) {*/
-/*  .about {*/
-/*    min-height: 100vh;*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*  }*/
-/*}*/
-</style>
